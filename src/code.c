@@ -115,7 +115,11 @@ int compare_str_asc(const void *a, const void *b)
 
 int compare_str_desc(const void *a, const void *b)
 {
-return strcmp(*(const char **)b, *(const char **)a);
+
+    const char *str_a = (const char *)a;
+    const char *str_b = (const char *)b;
+
+    return strcmp(str_b, str_a);
 }
 
 /*
