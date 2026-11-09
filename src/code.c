@@ -53,10 +53,7 @@ int compare_int_asc(const void *a, const void *b)
 
 int compare_int_desc(const void *a, const void *b)
 {
-    // TODO
-    (void)a;
-    (void)b;
-    return 0;
+    return compare_int_asc(b, a);
 }
 
 /*
@@ -70,10 +67,10 @@ int compare_int_desc(const void *a, const void *b)
 
 int compare_float_asc(const void *a, const void *b)
 {
-    // TODO
-    (void)a;
-    (void)b;
-    return 0;
+    float x = *(const float *)a;
+    float y = *(const float *)b;
+    
+    return (x > y) - (x < y);
 }
 
 /*
@@ -84,9 +81,11 @@ int compare_float_asc(const void *a, const void *b)
 
 int compare_float_desc(const void *a, const void *b)
 {
-    // TODO
-    (void)a;
-    (void)b;
+    float fa = *(const float *)a;
+    float fb = *(const float *)b;
+
+    if (fa < fb) return 1;
+    if (fa > fb) return -1;
     return 0;
 }
 
@@ -101,10 +100,11 @@ int compare_float_desc(const void *a, const void *b)
 
 int compare_str_asc(const void *a, const void *b)
 {
-    // TODO
-    (void)a;
-    (void)b;
-    return 0;
+
+    const char *str_a = (const char *)a;
+    const char *str_b = (const char *)b;
+
+    return strcmp(str_a, str_b);
 }
 
 /*
@@ -115,10 +115,7 @@ int compare_str_asc(const void *a, const void *b)
 
 int compare_str_desc(const void *a, const void *b)
 {
-    // TODO
-    (void)a;
-    (void)b;
-    return 0;
+return strcmp(*(const char **)b, *(const char **)a);
 }
 
 /*
@@ -135,10 +132,11 @@ int compare_str_desc(const void *a, const void *b)
 
 int compare_strptr_asc(const void *a, const void *b)
 {
-    // TODO
-    (void)a;
-    (void)b;
-    return 0;
+    const char *str_a = *(const char * const *)a;
+    const char *str_b = *(const char * const *)b;
+    
+    // Compare the strings using strcmp for ascending order
+    return strcmp(str_a, str_b);
 }
 
 /*
@@ -149,10 +147,10 @@ int compare_strptr_asc(const void *a, const void *b)
 
 int compare_strptr_desc(const void *a, const void *b)
 {
-    // TODO
-    (void)a;
-    (void)b;
-    return 0;
+    const char *str_a = *(const char **)a;
+    const char *str_b = *(const char **)b;
+    
+    return strcmp(str_b, str_a);
 }
 
 /* ======================================================================
@@ -171,10 +169,20 @@ int compare_strptr_desc(const void *a, const void *b)
 
 void swap_elements(void *a, void *b, size_t size)
 {
-    // TODO
-    (void)a;
-    (void)b;
-    (void)size;
+    if (a == NULL || b == NULL || a == b || size == 0) {
+        return;
+    }
+
+    // Cast pointers to unsigned char * to enable byte-by-byte access
+    unsigned char *ptr_a = (unsigned char *)a;
+    unsigned char *ptr_b = (unsigned char *)b;
+
+    // Swap the blocks byte by byte using a single temporary variable
+    for (size_t i = 0; i < size; i++) {
+        unsigned char temp = ptr_a[i];
+        ptr_a[i] = ptr_b[i];
+        ptr_b[i] = temp;
+    }
 }
 
 /*
@@ -198,11 +206,34 @@ void swap_elements(void *a, void *b, size_t size)
 
 void bubble_sort(void *base, size_t count, size_t size, Comparator compare)
 {
-    // TODO
-    (void)base;
-    (void)count;
-    (void)size;
-    (void)compare;
+ if (base == NULL || compare == NULL || size == 0 || count < 2) {
+        return;
+    }
+
+    // Cast base to unsigned char * for byte-accurate pointer arithmetic
+    unsigned char *u_base = (unsigned char *)base;
+
+    // Repeat passes
+    for (size_t k = 0; k < count - 1; k++) {
+        int swapped = 0;
+
+        // Compare only the first count - 1 - k pairs of neighbours
+        for (size_t i = 0; i < count - 1 - k; i++) {
+            unsigned char *left = u_base + i * size;
+            unsigned char *right = u_base + (i + 1) * size;
+
+            // Swap ONLY when compare(left, right) > 0 to maintain stability
+            if (compare(left, right) > 0) {
+                swap_elements(left, right, size);
+                swapped = 1;
+            }
+        }
+
+        // If the pass did not swap anything, the array is sorted: stop immediately
+        if (!swapped) {
+            break;
+        }
+    }
 }
 
 /*
@@ -217,12 +248,34 @@ void bubble_sort(void *base, size_t count, size_t size, Comparator compare)
 
 bool is_sorted_array(const void *base, size_t count, size_t size, Comparator compare)
 {
-    // TODO
-    (void)base;
-    (void)count;
-    (void)size;
-    (void)compare;
-    return false;
+if (compare == NULL || size == 0) {
+        return false;
+    }
+
+    // 2. count < 2 -> true
+    if (count < 2) {
+        return true;
+    }
+
+    // 3. base == NULL (with count >= 2) -> false
+    if (base == NULL) {
+        return false;
+    }
+
+    // Cast to char* to allow byte-level pointer arithmetic
+    const char *ptr = (const char *)base;
+
+    // Check if compare(element i, element i + 1) <= 0 for every pair
+    for (size_t i = 0; i < count - 1; i++) {
+        const void *elem_i = ptr + (i * size);
+        const void *elem_next = ptr + ((i + 1) * size);
+
+        if (compare(elem_i, elem_next) > 0) {
+            return false; // Array is out of order
+        }
+    }
+
+    return true;
 }
 
 /* ======================================================================
@@ -245,10 +298,16 @@ bool is_sorted_array(const void *base, size_t count, size_t size, Comparator com
 
 void sort_ints(int *arr, size_t count, bool ascending)
 {
-    // TODO
-    (void)arr;
-    (void)count;
-    (void)ascending;
+    if (arr == NULL || count < 2) {
+        return;
+    }
+
+    // Select the appropriate comparator based on the ascending flag
+    if (ascending) {
+        qsort(arr, count, sizeof(int), compare_int_asc);
+    } else {
+        qsort(arr, count, sizeof(int), compare_int_desc);
+    }
 }
 
 /*
@@ -259,10 +318,15 @@ void sort_ints(int *arr, size_t count, bool ascending)
 
 void sort_floats(float *arr, size_t count, bool ascending)
 {
-    // TODO
-    (void)arr;
-    (void)count;
-    (void)ascending;
+if (arr == NULL || count < 2) {
+        return;
+    }
+
+    if (ascending) {
+        qsort(arr, count, sizeof(float), compare_int_asc);
+    } else {
+        qsort(arr, count, sizeof(float), compare_int_desc);
+    }
 }
 
 /*
@@ -276,10 +340,16 @@ void sort_floats(float *arr, size_t count, bool ascending)
 
 void sort_names(char names[][NAME_LEN], size_t count, bool ascending)
 {
-    // TODO
-    (void)names;
-    (void)count;
-    (void)ascending;
+  // 1. Guard clause: do nothing if the array is null or has fewer than 2 elements
+    if (names == NULL || count < 2) {
+        return;
+    }
+
+    // 2. Select the appropriate comparison function based on the boolean flag
+    int (*compare_func)(const void *, const void *) = ascending ? compare_str_asc : compare_str_desc;
+
+    // 3. Call qsort with the array, count, the explicit size of one name element, and the function pointer
+    qsort(names, count, NAME_LEN, compare_func);
 }
 
 /*
@@ -293,10 +363,16 @@ void sort_names(char names[][NAME_LEN], size_t count, bool ascending)
 
 void sort_string_pointers(char **strs, size_t count, bool ascending)
 {
-    // TODO
-    (void)strs;
-    (void)count;
-    (void)ascending;
+// Guard clause: do nothing if array is NULL or has fewer than 2 elements
+    if (strs == NULL || count < 2) {
+        return;
+    }
+
+    // Select the appropriate comparison function based on the boolean flag
+    int (*compare_func)(const void *, const void *) = ascending ? compare_strptr_asc : compare_strptr_desc;
+
+    // Execute qsort
+    qsort(strs, count, sizeof(char *), compare_func);
 }
 
 /*
@@ -311,10 +387,26 @@ void sort_string_pointers(char **strs, size_t count, bool ascending)
 
 int *sorted_copy(const int *arr, size_t count)
 {
-    // TODO
-    (void)arr;
-    (void)count;
-    return NULL;
+if (arr == NULL || count == 0) {
+        return NULL;
+    }
+    
+    // Allocate a new heap block for the copy
+    int *copy = (int *)malloc(count * sizeof(int));
+    
+    // Check for allocation failure
+    if (copy == NULL) {
+        return NULL;
+    }
+    
+    // Copy the contents of the original array into the new block
+    memcpy(copy, arr, count * sizeof(int));
+    
+    // Sort the newly created copy in ascending order
+    qsort(copy, count, sizeof(int), compare_int_asc);
+    
+    // Return the sorted copy (caller is responsible for freeing this memory)
+    return copy;
 }
 
 /*
@@ -331,11 +423,32 @@ int *sorted_copy(const int *arr, size_t count)
 
 bool find_median(const int *arr, size_t count, float *out)
 {
-    // TODO
-    (void)arr;
-    (void)count;
-    (void)out;
-    return false;
+    // Check for invalid inputs and empty array
+    if (arr == NULL || count == 0 || out == NULL) {
+        return false;
+    }
+
+    // Get a sorted copy of the array
+    int *sorted = sorted_copy(arr, count);
+    if (sorted == NULL) {
+        return false; // Allocation failure
+    }
+
+    // Calculate median
+    if (count % 2 != 0) {
+        // Odd count: middle element
+        *out = (float)sorted[count / 2];
+    } else {
+        // Even count: average of two middle elements
+        // Cast to float first to prevent integer overflow when adding
+        float left = (float)sorted[count / 2 - 1];
+        float right = (float)sorted[count / 2];
+        *out = (left + right) / 2.0f;
+    }
+
+    // Free the allocated memory before returning true
+    free(sorted);
+    return true;
 }
 
 /*
@@ -349,10 +462,33 @@ bool find_median(const int *arr, size_t count, float *out)
 
 bool has_duplicates(const int *arr, size_t count)
 {
-    // TODO
-    (void)arr;
-    (void)count;
-    return false;
+ // Return false if array pointer is NULL or contains fewer than 2 elements
+    if (arr == NULL || count < 2) {
+        return false;
+    }
+
+    // Create a sorted copy of the array
+    int *sorted = sorted_copy(arr, count);
+    
+    // Return false if the allocation inside sorted_copy failed
+    if (sorted == NULL) {
+        return false;
+    }
+
+    bool duplicate_found = false;
+
+    // Scan for two equal neighbors
+    for (size_t i = 0; i < count - 1; i++) {
+        if (sorted[i] == sorted[i + 1]) {
+            duplicate_found = true;
+            break;
+        }
+    }
+
+    // Always free the dynamically allocated copy before returning
+    free(sorted);
+
+    return duplicate_found;
 }
 
 /*
@@ -364,9 +500,17 @@ bool has_duplicates(const int *arr, size_t count)
 
 int compare_students_by_age(const void *a, const void *b)
 {
-    // TODO
-    (void)a;
-    (void)b;
+    // Cast the generic const void * pointers to const Student *
+    const Student *student_a = *(const Student **)a;
+    const Student *student_b = *(const Student **)b;
+
+    // Compare the age fields: younger first (ascending order)
+    if (student_a->age < student_b->age) {
+        return -1;
+    } else if (student_a->age > student_b->age) {
+        return 1;
+    }
+    
     return 0;
 }
 
@@ -382,10 +526,17 @@ int compare_students_by_age(const void *a, const void *b)
 
 int compare_students_ranking(const void *a, const void *b)
 {
-    // TODO
-    (void)a;
-    (void)b;
-    return 0;
+    // Cast the generic void pointers to the actual Student struct pointers
+    const Student *student_a = (const Student *)a;
+    const Student *student_b = (const Student *)b;
+
+    // 1. Higher score first (descending order)
+    if (student_a->score > student_b->score) return -1;
+    if (student_a->score < student_b->score) return 1;
+
+    // 2. If scores are equal, name ascending (alphabetical order)
+    // 3. If names are also equal, strcmp naturally returns 0
+    return strcmp(student_a->name, student_b->name);
 }
 
 /*
@@ -398,7 +549,9 @@ int compare_students_ranking(const void *a, const void *b)
 
 void rank_students(Student *students, size_t count)
 {
-    // TODO
-    (void)students;
-    (void)count;
+    if (students == NULL || count < 2) {
+        return;
+    }
+
+    qsort(students, count, sizeof(Student), compare_students_ranking);
 }
