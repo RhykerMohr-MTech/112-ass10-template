@@ -100,11 +100,15 @@ int compare_float_desc(const void *a, const void *b)
 
 int compare_str_asc(const void *a, const void *b)
 {
+  //Experimental code pulled from Google.com AI mode
+    if (a == NULL && b == NULL) return 0;
+    if (a == NULL) return -1;
+    if (b == NULL) return 1;
 
-         const char * str_a = ( char *) a;
-         const char * str_b = ( char *) b;
+    const char *str_a = (const char *)a;
+    const char *str_b = (const char *)b;
 
-        return strcmp(str_a, str_b);
+    return strcmp(str_a, str_b);
 }
 
 /*
@@ -115,9 +119,13 @@ int compare_str_asc(const void *a, const void *b)
 
 int compare_str_desc(const void *a, const void *b)
 {
+//Experimental code pulled from Google.com AI mode
+ if (a == NULL && b == NULL) return 0;
+    if (a == NULL) return 1; 
+    if (b == NULL) return -1;
 
-    const char *str_a = *(const char **)a;
-    const char *str_b = *(const char **)b;
+    const char *str_a = (const char *)a;
+    const char *str_b = (const char *)b;
 
     return strcmp(str_b, str_a);
 }
