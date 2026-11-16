@@ -100,11 +100,13 @@ int compare_float_desc(const void *a, const void *b)
 
 int compare_str_asc(const void *a, const void *b)
 {
+    if(a && b)
+    {
+         const char * str_a = ( char *) a;
+         const char * str_b = ( char *) b;
 
-    const char *str_a = *(const char **)a;
-    const char *str_b = *(const char **)b;
-
-    return strcmp(str_a, str_b);
+        return strcmp(str_a, str_b);
+    }
 }
 
 /*
