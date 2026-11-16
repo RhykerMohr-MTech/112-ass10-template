@@ -513,8 +513,8 @@ bool has_duplicates(const int *arr, size_t count)
 int compare_students_by_age(const void *a, const void *b)
 {
     // Cast the generic const void * pointers to const Student *
-    const Student *student_a = *(const Student **)a;
-    const Student *student_b = *(const Student **)b;
+    const Student *student_a = (const Student *)a;
+    const Student *student_b = (const Student *)b;
 
     // Compare the age fields: younger first (ascending order)
     if (student_a->age < student_b->age) {
